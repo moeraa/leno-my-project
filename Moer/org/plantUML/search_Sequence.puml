@@ -1,0 +1,29 @@
+@startuml
+activate box
+box->box:创建任务信息
+activate indexcreate
+indexcreate->box:获取任务信息（box创建、失败补建、手动创建）
+box->indexcreate:返回任务信息
+alt 文件夹 或者 不支持全文检索的文件
+ activate solr
+ indexcreate->solr: 创建索引
+ solr->indexcreate:返回索引创建的状态
+ deactivate solr
+ indexcreate->box:更新任务表的状态
+else 可提取内容的文件
+  alt 文件已下载过
+  indexcreate->indexcreate:获取文件内容 解压缩
+  else 文件未下载过
+  indexcreate->box:文件下载请求 v2/dl_router/databox/xxx....
+  box->indexcreate:获取文件内容
+  indexcreate->indexcreate:文件内容提取 (org.apache.tika.parser)，压缩 存入数据库
+  end
+ activate solr
+ indexcreate->solr: 创建索引（包含文件内容）
+ solr->indexcreate:返回索引创建的状态
+ deactivate solr
+ indexcreate->box:更新任务表的状态
+end
+deactivate box
+deactivate indexcreate
+@enduml

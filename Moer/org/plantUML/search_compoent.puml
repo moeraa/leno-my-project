@@ -1,0 +1,52 @@
+@startuml
+title
+search 组件图
+end title
+database "数据库服务" {
+ [dataSource]
+}
+package "search1" {
+     package "indexcreate Group 1"{
+         [indexcreate_1] ..> ()"dataSource" :select
+     }
+     package "search Group 1"{
+         [tomcat_solr_1] <.. [indexcreate_1] :commit index
+     }
+     package "solr Group 1"{
+         [search_1] ..> [tomcat_solr_1] :select index
+     }
+ }
+ package "search2" {
+     package "indexcreate Group 2"{
+         [indexcreate_2] ..> ()"dataSource" :select
+     }
+     package "search Group 2"{
+         [tomcat_solr_2] <.. [indexcreate_2] :commit index
+     }
+     package "solr Group 2"{
+         [search_2] ..> [tomcat_solr_2] :select index
+     }
+ }
+ package "search3" {
+     package "indexcreate Group 3"{
+         [indexcreate_3] ..> ()"dataSource" :select
+     }
+     package "search Group 3"{
+         [tomcat_solr_3] <.. [indexcreate_3] :commit index
+     }
+     package "solr Group 3"{
+         [search_3] ..> [tomcat_solr_3] :select index
+     }
+ }
+
+package "client Group"{
+    [client_3] ..> () Nginx:request
+    [client_2] ..> () Nginx:request
+    [client_1] ..> () Nginx:request
+     note left of Nginx :负载均衡
+    ()Nginx ..>[search_1]
+    ()Nginx ..>[search_2]
+    ()Nginx ..>[search_3]
+
+}
+@enduml

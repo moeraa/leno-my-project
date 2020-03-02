@@ -1,0 +1,25 @@
+@startuml
+note left of client
+一些动作发生之后
+异步创建的消息
+但是不会创建
+user和message的关系
+end note
+client -> application:创建用户，创建文件，授权等
+stat->stat:定时（1min）访问数据库，处理的消息
+legend center
+stat处理，是按照message类型处理的，
+类型是维护的一个枚举类型，
+授权类，数据类，审批，外链，用户等9类消息，
+end legend
+stat --> application:部分消息会访问box获取metadata信息
+note left of stat
+stat 是一个springboot项目，
+主要的功能是定时处理一些业务
+如：定时清理，定时发送消息，统计，日志，dlp等
+其中消息动态，也是一块内容,1min获取未处理的消息
+处理的消息，建立user和message的关系。
+end note
+client->application:获取消息：v2/message/list_msg...
+application->client:返回相关用户的消息
+@enduml

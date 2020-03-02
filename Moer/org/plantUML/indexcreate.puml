@@ -1,0 +1,40 @@
+@startuml
+activate box
+box->box:文件相关操作生成journal信息、生成mq消息
+note over box:  数据源统一到数据库的task
+activate indexcreate
+indexcreate->box:按照游标获取journal信息
+box--[#00FF00]>indexcreate:获取相关信息，插入task表，生成任务
+deactivate box
+indexcreate-[#00FF00]>indexcreate:按照条件获取任务(优先级、任务的状态)
+note left
+    手动补建，mq,journal,系统错误重试等
+    按照不同优先级获取任务；去处理
+    end note
+alt 文件夹或者不支持全文检索的文件
+ activate solr
+ indexcreate->solr:创建索引
+ solr->indexcreate:返回索引提交的状态
+ deactivate solr
+else 可提取的文件内容
+  alt 文件已下载过
+    indexcreate->indexcreate:获取文件内容 解压缩
+  else 文件未下载过
+    activate box
+    indexcreate->box: 文件下载请求  v2/dl_router/databox/xxx....
+    box->indexcreate:返回文件内容
+     deactivate box
+    indexcreate-[#00FF00]>indexcreate:文件内容提取，压缩，入库
+    note left
+    文件内容下载将会做特殊处理，
+    保证一条数据只能被一个容器下载
+    end note
+  end
+     activate solr
+     indexcreate->solr:创建索引（包含文件内容）
+     solr->indexcreate:索引创建的状态
+     deactivate solr
+ end
+ indexcreate->indexcreate:更新task状态或者删除成功的任务
+ deactivate indexcreate
+@enduml
