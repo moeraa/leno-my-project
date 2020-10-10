@@ -1,0 +1,42 @@
+@startuml
+note right of 指数平台 #EEEBDC
+营销洞察->数据报表->发送生成请求
+end note
+指数平台 -> PPT_Project: 发送生成PPT的请求:index/ppt/generator/generate
+PPT_Project->redis:存储入redis PPT生成进度
+PPT_Project->指数平台:返回 正在生成中....,PPT_Project异步执行生成任务
+指数平台->PPT_Socket_PPT:获取PPT进度
+note left of PPT_Socket_PPT #EEEBDC
+websocket服务，实现PPT生成进度
+end note
+PPT_Socket_PPT->redis:获取redis中PPT进度
+redis->PPT_Socket_PPT:返回PPT的进度
+PPT_Socket_PPT->指数平台:返回PPT进度
+PPT_Project <- PPT_Project : 针对用户选择生成条件，准备开始构建数据
+note left of PPT_Project #EEEBDC
+PPT项目提供接受请求，
+异步执行生成任务
+针对不同的PPT类型，
+每个图表的数据源
+需要通过Serivice_Project获取
+end note
+PPT_Project -> Serivice_Project: 获取PPT中所需要的数据
+Serivice_Project -> ES: 通过访问ES查询数据
+ES -> Serivice_Project: ES返回查询导数据
+Serivice_Project -> Serivice_Project: 针对PPT图表的逻辑处理数据逻辑
+note left of Serivice_Project #EEEBDC
+大多数的逻辑，
+和指数平台的逻辑相似
+Serivice_Project
+end note
+Serivice_Project->PPT_Project:返回PPT的数据
+PPT_Project->PPT_Project:封装PPT数据，构建图表，
+PPT_Project->OSS :生成PPT文件上传到OSS对象存储服务器汇总
+OSS->PPT_Project: 返回PPT上传的地址信息 存储数据库中
+PPT_Project->redis:更新redis中PPT生成进度
+指数平台->PPT_Socket_PPT:获取PPT进度
+PPT_Socket_PPT->redis:获取redis中PPT进度
+redis->PPT_Socket_PPT:返回PPT的数据
+PPT_Socket_PPT->指数平台:返回PPT进度
+
+@enduml
