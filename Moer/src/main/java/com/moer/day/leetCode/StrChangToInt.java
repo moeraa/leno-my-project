@@ -52,6 +52,7 @@ public class StrChangToInt {
                     //8>=8
                     System.out.println(charInt);
                     System.out.println(Integer.MIN_VALUE % 10);
+                    // resutl>(Integer.MAX_VALUE - charInt)/10
                     if (tmp < Integer.MIN_VALUE / 10 || (tmp == Integer.MIN_VALUE / 10 && (-charInt <= (Integer.MIN_VALUE % 10)))) {
                         return Integer.MIN_VALUE;
                     }
